@@ -53,7 +53,7 @@ class ISDNJpXMLParser:
         for event, elm in etree.iterparse(
             file, events=("end",), tag=[f"{{{namespaces['sitemap']}}}loc"], remove_blank_text=True
         ):
-            m = re.match("https://isdn.jp/(\d{13})", elm.text)
+            m = re.match(r"https://isdn.jp/(\d{13})", elm.text)
             if not m:
                 continue
             yield m.group(1)
