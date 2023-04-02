@@ -46,8 +46,8 @@ def list_isdns():
 @cli.command(help="Download all xml record files from isdn.jp")
 @click.argument("directory", type=click.Path(exists=True, file_okay=False, writable=True))
 @click.option("--force", "-f", is_flag=True, help="Overwrite existing files")
-@click.option("--stop-on-error", is_flag=True, help="Overwrite existing files")
-@click.option("--sleep-time", "-s", type=int, default=500, help="sleep interval for download (millisecond)")
+@click.option("--stop-on-error", is_flag=True, help="Stops when error occurs during download")
+@click.option("--sleep-time", "-s", type=int, default=500, help="Sleep interval for download (millisecond)")
 def bulk_download(directory: str, force: bool, stop_on_error: bool, sleep_time: int):
     c = ISDNClient()
     with click.progressbar(list(c.list()), show_pos=True) as bar:
