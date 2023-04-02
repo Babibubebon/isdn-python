@@ -5,13 +5,20 @@ import requests
 from . import ISDNRecord, __version__
 from .parser import ISDNJpXMLParser
 
-ISDN_API_ENDPOINT = "https://isdn.jp/xml/"
+ISDN_XML_ENDPOINT = "https://isdn.jp/xml/{isdn}"
+ISDN_IMAGE_ENDPOINT = "https://isdn.jp/images/thumbs/{isdn}.png"
 ISDN_SITEMAP = "https://isdn.jp/sitemap.xml"
 
 
 class ISDNClient:
-    def __init__(self, endpoint_url: str = ISDN_API_ENDPOINT, sitemap_url: str = ISDN_SITEMAP):
-        self.endpoint_url = endpoint_url
+    def __init__(
+        self,
+        xml_endpoint_url: str = ISDN_XML_ENDPOINT,
+        image_endpoint_url: str = ISDN_IMAGE_ENDPOINT,
+        sitemap_url: str = ISDN_SITEMAP,
+    ):
+        self.xml_endpoint_url = xml_endpoint_url
+        self.image_endpoint_url = image_endpoint_url
         self.sitemap_url = sitemap_url
         self.s = requests.Session()
         self.set_user_agent(f"isdn-python/{__version__}")
@@ -23,17 +30,21 @@ class ISDNClient:
     def normalize_isdn(isdn: str) -> str:
         return isdn.replace("-", "").strip()
 
-    def _get(self, isdn: str) -> requests.Response:
-        r = self.s.get(self.endpoint_url + self.normalize_isdn(isdn))
+    def _get(self, isdn: str, endpoint_url: str) -> requests.Response:
+        r = self.s.get(endpoint_url.format(isdn=self.normalize_isdn(isdn)))
         r.raise_for_status()
         return r
 
     def get(self, isdn: str) -> ISDNRecord:
-        r = self._get(isdn)
+        r = self._get(isdn, self.xml_endpoint_url)
         return ISDNJpXMLParser.parse_record(r.content)
 
     def get_raw(self, isdn: str) -> bytes:
-        r = self._get(isdn)
+        r = self._get(isdn, self.xml_endpoint_url)
+        return r.content
+
+    def get_image(self, isdn: str) -> bytes:
+        r = self._get(isdn, self.image_endpoint_url)
         return r.content
 
     def _list(self) -> requests.Response:
