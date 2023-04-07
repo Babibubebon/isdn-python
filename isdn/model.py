@@ -112,7 +112,7 @@ class ISDN:
 
 class UserOption(BaseXmlModel, tag="useroption", nsmap=NSMAP):
     property: str = element(tag="property", default="")
-    value: str = element(tag="value")
+    value: str = element(tag="value", default="")
 
 
 class ExternalLink(BaseXmlModel, tag="external-link", nsmap=NSMAP):
