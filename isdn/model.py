@@ -1,5 +1,6 @@
 import re
 from datetime import date
+from decimal import Decimal
 
 from pydantic import Field, HttpUrl, root_validator, validator
 from pydantic.dataclasses import dataclass
@@ -139,13 +140,13 @@ class ISDNRecord(BaseXmlModel, nsmap=NSMAP):
     author: str | None = element(tag="author")
     shape: str | None = element(tag="shape")
     contents: str | None = element(tag="contents")
-    price: int | None = element(tag="price")
+    price: Decimal | None = element(tag="price")
     price_unit: str | None = element(tag="price-unit")
     barcode2: str | None = element(tag="barcode2")
     product_comment: str | None = element(tag="product-comment")
     product_style: str | None = element(tag="product-style")
     product_size: str | None = element(tag="product-size")
-    product_capacity: int | None = element(tag="product-capacity")
+    product_capacity: Decimal | None = element(tag="product-capacity")
     product_capacity_unit: str | None = element(tag="product-capacity-unit")
     sample_image_uri: HttpUrl | None = element(tag="sample-image-uri")
     useroptions: list[UserOption] = Field(default_factory=list)

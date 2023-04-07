@@ -62,7 +62,7 @@ ISDNRecord(
     author='専門',
     shape='単行本',
     contents='電子通信',
-    price=100,
+    price=Decimal('100'),
     price_unit='JPY',
     barcode2='2923055001007',
     product_comment=None,
