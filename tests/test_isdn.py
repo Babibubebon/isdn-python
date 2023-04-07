@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from isdn import ISDN, InvalidIsdnError
+from isdn import ISDN
 
 
 class TestIsdn(TestCase):
@@ -9,7 +9,12 @@ class TestIsdn(TestCase):
         ISDN(2784702901978, "278", "4", "702901", "97", "8")
         ISDN("278-4-702901-97-8", "278", "4", "702901", "97", "8")
 
+        disp_isdn = "ISDN278-4-702901-97-8"
+        isdn = ISDN(disp_isdn)
+        self.assertEqual(disp_isdn, isdn.to_disp_isdn())
+
         with self.assertRaises(ValueError):
+            ISDN("ISDN278-4-702901")
             ISDN("2784702901978", "278", "4", "000000", "97", "8")
 
     def test_parts(self):
@@ -53,11 +58,3 @@ class TestIsdn(TestCase):
         self.assertEqual("7", ISDN.calc_check_digit("278470290107"))
         self.assertEqual("8", ISDN.calc_check_digit("278470290113"))
         self.assertEqual("9", ISDN.calc_check_digit("278470290103"))
-
-    def test_from_disp_isdn(self):
-        disp_isdn = "ISDN278-4-702901-97-8"
-        isdn = ISDN.from_disp_isdn(disp_isdn)
-        self.assertEqual(disp_isdn, isdn.to_disp_isdn())
-
-        with self.assertRaises(InvalidIsdnError):
-            ISDN.from_disp_isdn("ISDN278-4-702901")

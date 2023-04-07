@@ -1,13 +1,12 @@
-import json
 import os
 import time
 
 import click
 from requests.exceptions import HTTPError
 
-from . import ISDN, __version__
+from . import __version__
 from .client import ISDNClient
-from .parser import ISDNJpXMLParser
+from .model import ISDN, ISDNRoot
 
 
 @click.group()
@@ -29,9 +28,9 @@ def get_isdn(isdn: str, format: str):
         case "xml":
             res = c.get_raw(isdn)
         case "dict":
-            res = c.get(isdn).to_dict()
+            res = c.get(isdn).dict()
         case "json":
-            res = json.dumps(c.get(isdn).to_dict(), ensure_ascii=False)
+            res = c.get(isdn).json(ensure_ascii=False)
         case _:
             raise NotImplementedError
     click.echo(res)
@@ -72,7 +71,7 @@ def bulk_download(
                     out.write(res)
 
                 if write_image:
-                    record = ISDNJpXMLParser.parse_record(res)
+                    record = ISDNRoot.from_xml_first(res)
                     if record.sample_image_uri:
                         img = c.get_image(isdn)
                         with open(image_path, "wb") as out:

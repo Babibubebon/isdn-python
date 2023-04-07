@@ -2,8 +2,9 @@ from typing import Iterator
 
 import requests
 
-from . import ISDNRecord, __version__
-from .parser import ISDNJpXMLParser
+from . import __version__
+from .model import ISDNRecord, ISDNRoot
+from .parser import ISDNJpSitemapXMLParser
 
 ISDN_XML_ENDPOINT = "https://isdn.jp/xml/{isdn}"
 ISDN_IMAGE_ENDPOINT = "https://isdn.jp/images/thumbs/{isdn}.png"
@@ -37,7 +38,7 @@ class ISDNClient:
 
     def get(self, isdn: str) -> ISDNRecord:
         r = self._get(isdn, self.xml_endpoint_url)
-        return ISDNJpXMLParser.parse_record(r.content)
+        return ISDNRoot.from_xml_first(r.content)
 
     def get_raw(self, isdn: str) -> bytes:
         r = self._get(isdn, self.xml_endpoint_url)
@@ -54,4 +55,4 @@ class ISDNClient:
 
     def list(self) -> Iterator[str]:
         r = self._list()
-        return ISDNJpXMLParser.parse_list(r.raw)
+        return ISDNJpSitemapXMLParser.parse_list(r.raw)
