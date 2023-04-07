@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "isdn"
-version = "1.0.1"
+version = "1.1.0"
 description = "Library for ISDN (International Standard Dojin Numbering)"
 authors = ["Babibubebon <babibubebon@babibubebo.org>"]
 homepage = "https://github.com/Babibubebon/isdn-python"
