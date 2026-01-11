@@ -145,7 +145,7 @@ class ISDNRecord(BaseXmlModel, nsmap=NSMAP):
     type: str = element(tag="type")
     rating_gender: str = element(tag="rating_gender")
     rating_age: str = element(tag="rating_age")
-    product_name: str = element(tag="product-name")
+    product_name: str | None = element(tag="product-name", default=None)  # 仕様上は必須
     product_yomi: str | None = element(tag="product-yomi", default=None)
     publisher_code: str = element(tag="publisher-code")
     publisher_name: str = element(tag="publisher-name")
