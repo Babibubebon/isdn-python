@@ -22,15 +22,20 @@ def version():
 @cli.command("get", help="Get record from isdn.jp")
 @click.argument("isdn")
 @click.option("--format", "-f", type=click.Choice(["xml", "dict", "json"]), default="xml")
-def get_isdn(isdn: str, format: str):
+@click.option("--pretty", "-p", is_flag=True, help="Pretty print output")
+def get_isdn(isdn: str, format: str, pretty: bool):
+    from pprint import pformat
+
     c = ISDNClient()
     match format:
         case "xml":
             res = c.get_raw(isdn)
         case "dict":
-            res = c.get(isdn).dict()
+            res = c.get(isdn).model_dump()
+            if pretty:
+                res = pformat(res)
         case "json":
-            res = c.get(isdn).json(ensure_ascii=False)
+            res = c.get(isdn).model_dump_json(ensure_ascii=False, indent=2 if pretty else None)
         case _:
             raise NotImplementedError
     click.echo(res)
@@ -62,25 +67,34 @@ def bulk_download(
         for isdn in bar:
             path = os.path.join(directory, f"{isdn}.xml")
             image_path = os.path.join(write_image_path or directory, f"{isdn}.png")
+
             if not force and os.path.exists(path) and (not write_image or write_image and os.path.exists(image_path)):
                 continue
 
-            try:
-                res = c.get_raw(isdn)
-                with open(path, "wb") as out:
-                    out.write(res)
-
-                if write_image:
-                    record = ISDNRoot.from_xml_first(res)
-                    if record.sample_image_uri:
-                        img = c.get_image(isdn)
-                        with open(image_path, "wb") as out:
-                            out.write(img)
-            except HTTPError as err:
-                if stop_on_error:
-                    raise err
-                else:
+            record = None
+            if not force and os.path.exists(path):
+                with open(path, "rb") as f:
+                    record = ISDNRoot.from_xml_first(f.read())
+                if write_image and not record.sample_image_uri:
                     continue
+            else:
+                try:
+                    res = c.get_raw(isdn)
+                    with open(path, "wb") as out:
+                        out.write(res)
+                    record = ISDNRoot.from_xml_first(res)
+                except HTTPError as err:
+                    if stop_on_error:
+                        raise err
+                    else:
+                        continue
+
+            if write_image and record.sample_image_uri:
+                if not force and os.path.exists(image_path):
+                    continue
+                img = c.get_image(isdn)
+                with open(image_path, "wb") as out:
+                    out.write(img)
 
             time.sleep(sleep_time / 1000)
 

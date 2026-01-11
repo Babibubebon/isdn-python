@@ -1,9 +1,9 @@
 import re
 from datetime import date
 from decimal import Decimal
+from typing import Any
 
-from pydantic import Field, HttpUrl, root_validator, validator
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel, Field, HttpUrl, model_validator
 from pydantic_xml import BaseXmlModel, element
 
 from . import InvalidIsdnError
@@ -11,8 +11,7 @@ from . import InvalidIsdnError
 NSMAP = {"": "https://isdn.jp/schemas/0.1"}
 
 
-@dataclass
-class ISDN:
+class ISDN(BaseModel):
     code: str
     prefix: str | None = None
     group: str | None = None
@@ -20,8 +19,27 @@ class ISDN:
     publication: str | None = None
     check_digit: str | None = None
 
-    @root_validator(pre=True)
-    def validate_code(cls, values):
+    def __init__(
+        self,
+        code: str,
+        prefix: str | None = None,
+        group: str | None = None,
+        registrant: str | None = None,
+        publication: str | None = None,
+        check_digit: str | None = None,
+    ) -> None:
+        super().__init__(
+            code=code,
+            prefix=prefix,
+            group=group,
+            registrant=registrant,
+            publication=publication,
+            check_digit=check_digit,
+        )
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_code(cls, values: Any) -> Any:
         code = str(values["code"])
 
         if code.startswith("ISDN") and "-" in code:
@@ -116,45 +134,45 @@ class UserOption(BaseXmlModel, tag="useroption", nsmap=NSMAP):
 
 
 class ExternalLink(BaseXmlModel, tag="external-link", nsmap=NSMAP):
-    title: str | None = element(tag="title")
-    uri: HttpUrl = element(tag="uri")
+    title: str | None = element(tag="title", default=None)
+    uri: HttpUrl | str = element(tag="uri")
 
 
 class ISDNRecord(BaseXmlModel, nsmap=NSMAP):
-    isdn: ISDN = element(tag="disp-isdn")
+    disp_isdn: str = element(tag="disp-isdn")
     region: str = element(tag="region")
     class_: str = element(tag="class")
     type: str = element(tag="type")
     rating_gender: str = element(tag="rating_gender")
     rating_age: str = element(tag="rating_age")
-    product_name: str = element(tag="product-name")
-    product_yomi: str | None = element(tag="product-yomi")
+    product_name: str | None = element(tag="product-name", default=None)  # 仕様上は必須
+    product_yomi: str | None = element(tag="product-yomi", default=None)
     publisher_code: str = element(tag="publisher-code")
     publisher_name: str = element(tag="publisher-name")
-    publisher_yomi: str | None = element(tag="publisher-yomi")
+    publisher_yomi: str | None = element(tag="publisher-yomi", default=None)
     issue_date: date = element(tag="issue-date")
-    genre_code: str | None = element(tag="genre-code")
-    genre_name: str | None = element(tag="genre-name")
-    genre_user: str | None = element(tag="genre-user")
-    c_code: str | None = element(tag="c-code")
-    author: str | None = element(tag="author")
-    shape: str | None = element(tag="shape")
-    contents: str | None = element(tag="contents")
-    price: Decimal | None = element(tag="price")
-    price_unit: str | None = element(tag="price-unit")
-    barcode2: str | None = element(tag="barcode2")
-    product_comment: str | None = element(tag="product-comment")
-    product_style: str | None = element(tag="product-style")
-    product_size: str | None = element(tag="product-size")
-    product_capacity: Decimal | None = element(tag="product-capacity")
-    product_capacity_unit: str | None = element(tag="product-capacity-unit")
-    sample_image_uri: HttpUrl | None = element(tag="sample-image-uri")
+    genre_code: str | None = element(tag="genre-code", default=None)
+    genre_name: str | None = element(tag="genre-name", default=None)
+    genre_user: str | None = element(tag="genre-user", default=None)
+    c_code: str | None = element(tag="c-code", default=None)
+    author: str | None = element(tag="author", default=None)
+    shape: str | None = element(tag="shape", default=None)
+    contents: str | None = element(tag="contents", default=None)
+    price: Decimal | None = element(tag="price", default=None)
+    price_unit: str | None = element(tag="price-unit", default=None)
+    barcode2: str | None = element(tag="barcode2", default=None)
+    product_comment: str | None = element(tag="product-comment", default=None)
+    product_style: str | None = element(tag="product-style", default=None)
+    product_size: str | None = element(tag="product-size", default=None)
+    product_capacity: Decimal | None = element(tag="product-capacity", default=None)
+    product_capacity_unit: str | None = element(tag="product-capacity-unit", default=None)
+    sample_image_uri: HttpUrl | None = element(tag="sample-image-uri", default=None)
     useroptions: list[UserOption] = Field(default_factory=list)
     external_links: list[ExternalLink] = Field(default_factory=list)
 
-    @validator("isdn", pre=True)
-    def parse_disp_isdn(cls, isdn: str) -> ISDN:
-        return ISDN(code=isdn)
+    @property
+    def isdn(self) -> ISDN:
+        return ISDN(code=self.disp_isdn)
 
 
 class ISDNRoot(BaseXmlModel, tag="isdn", nsmap=NSMAP):
