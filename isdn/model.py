@@ -3,7 +3,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Any
 
-from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
+from pydantic import BaseModel, Field, HttpUrl, model_validator
 from pydantic_xml import BaseXmlModel, element
 
 from . import InvalidIsdnError
